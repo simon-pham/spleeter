@@ -14,26 +14,13 @@ __license__ = 'MIT License'
 
 # Default project values.
 project_name = 'spleeter'
-project_version = '1.4.1'
-device_target = 'cpu'
+project_version = '1.4.8'
 tensorflow_dependency = 'tensorflow'
 tensorflow_version = '1.14.0'
 here = path.abspath(path.dirname(__file__))
 readme_path = path.join(here, 'README.md')
 with open(readme_path, 'r') as stream:
     readme = stream.read()
-
-# Check if GPU target is specified.
-if '--target' in sys.argv:
-    target_index = sys.argv.index('--target') + 1
-    target = sys.argv[target_index].lower()
-    sys.argv.remove('--target')
-    sys.argv.pop(target_index)
-
-# GPU target compatibility check.
-if device_target == 'gpu':
-    project_name = '{}-gpu'.format(project_name)
-    tensorflow_dependency = 'tensorflow-gpu'
 
 # Package setup entrypoint.
 setup(
@@ -51,26 +38,29 @@ setup(
     license='MIT License',
     packages=[
         'spleeter',
+        'spleeter.audio',
         'spleeter.commands',
         'spleeter.model',
         'spleeter.model.functions',
         'spleeter.model.provider',
         'spleeter.resources',
         'spleeter.utils',
-        'spleeter.utils.audio',
     ],
     package_data={'spleeter.resources': ['*.json']},
     python_requires='>=3.6, <3.8',
     include_package_data=True,
     install_requires=[
+        'ffmpeg-python',
         'importlib_resources ; python_version<"3.7"',
-        'musdb==0.3.1',
-        'museval==0.3.0',
         'norbert==0.2.1',
         'pandas==0.25.1',
         'requests',
+        'setuptools>=41.0.0',
         '{}=={}'.format(tensorflow_dependency, tensorflow_version),
     ],
+    extras_require={
+        'evaluation':  ['musdb==0.3.1', 'museval==0.3.0']
+    },
     entry_points={
         'console_scripts': ['spleeter=spleeter.__main__:entrypoint']
     },

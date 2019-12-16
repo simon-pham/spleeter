@@ -13,6 +13,7 @@
         --mus_dir /path/to/musdb dataset
 """
 
+import sys
 import json
 
 from argparse import Namespace
@@ -21,8 +22,6 @@ from glob import glob
 from os.path import join, exists
 
 # pylint: disable=import-error
-import musdb
-import museval
 import numpy as np
 import pandas as pd
 # pylint: enable=import-error
@@ -30,13 +29,21 @@ import pandas as pd
 from .separate import entrypoint as separate_entrypoint
 from ..utils.logging import get_logger
 
+try:
+    import musdb
+    import museval
+except ImportError:
+    logger = get_logger()
+    logger.error('Extra dependencies musdb and museval not found')
+    logger.error('Please install musdb and museval first, abort')
+    sys.exit(1)
+
 __email__ = 'research@deezer.com'
 __author__ = 'Deezer Research'
 __license__ = 'MIT License'
 
 _SPLIT = 'test'
 _MIXTURE = 'mixture.wav'
-_NAMING = 'directory'
 _AUDIO_DIRECTORY = 'audio'
 _METRICS_DIRECTORY = 'metrics'
 _INSTRUMENTS = ('vocals', 'drums', 'bass', 'other')
@@ -60,11 +67,14 @@ def _separate_evaluation_dataset(arguments, musdb_root_directory, params):
     separate_entrypoint(
         Namespace(
             audio_adapter=arguments.audio_adapter,
-            audio_filenames=mixtures,
-            audio_codec='wav',
+            configuration=arguments.configuration,
+            inputs=mixtures,
             output_path=join(audio_output_directory, _SPLIT),
-            output_naming=_NAMING,
-            max_duration=600.,
+            filename_format='{filename}/{instrument}.{codec}',
+            codec='wav',
+            duration=600.,
+            offset=0.,
+            bitrate='128k',
             MWF=arguments.MWF,
             verbose=arguments.verbose),
         params)
